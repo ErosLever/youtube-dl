@@ -96,7 +96,8 @@ class NovaMovIE(InfoExtractor):
             'id': video_id,
             'url': video_url,
             'title': title,
-            'description': description
+            'description': description,
+            'filekey': filekey
         }
 
 
@@ -147,6 +148,25 @@ class NowVideoIE(NovaMovIE):
         },
     }
 
+    def _real_extract(self, url):
+        ret = NovaMovIE._real_extract(self, url)
+        locals().update(ret)
+        
+        if url.startswith("http://g1.zerocdn.to/"):
+
+            encoded_url = urlencode_postdata({0:url})[2:]
+            api_response = self._download_webpage(
+                'http://%s/api/player.api.php?key=%s&errorCode=404&errorUrl=%s&numOfErrors=1&file=%s' % (self._HOST, filekey, encoded_url, id), id,
+                'Updating video api response')
+    
+            response = compat_urlparse.parse_qs(api_response)
+    
+            if 'error_msg' in response:
+                raise ExtractorError('%s returned error: %s' % (self.IE_NAME, response['error_msg'][0]), expected=True)
+    
+            video_url = response['url'][0]  
+            ret['url'] = video_url
+        return ret
 
 class VideoWeedIE(NovaMovIE):
     IE_NAME = 'videoweed'
