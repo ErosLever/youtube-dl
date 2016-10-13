@@ -150,13 +150,11 @@ class NowVideoIE(NovaMovIE):
 
     def _real_extract(self, url):
         ret = NovaMovIE._real_extract(self, url)
-        locals().update(ret)
-        
-        if url.startswith("http://g1.zerocdn.to/"):
+        if ret['url'].startswith("http://g1.zerocdn.to/"):
 
-            encoded_url = urlencode_postdata({0:url})[2:]
+            encoded_url = urlencode_postdata({0:ret['url']})[2:]
             api_response = self._download_webpage(
-                'http://%s/api/player.api.php?key=%s&errorCode=404&errorUrl=%s&numOfErrors=1&file=%s' % (self._HOST, filekey, encoded_url, id), id,
+                'http://%s/api/player.api.php?key=%s&errorCode=404&errorUrl=%s&numOfErrors=1&file=%s' % (self._HOST, ret['filekey'], encoded_url, ret['id']), ret['id'],
                 'Updating video api response')
     
             response = compat_urlparse.parse_qs(api_response)
